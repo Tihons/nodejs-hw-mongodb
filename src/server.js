@@ -2,8 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import pino from 'pino-http';
 import { env } from './utils/env.js';
-import { getAllContacts, getContactById } from './services/contacts.js';
-import mongoose from 'mongoose';
+
+import contactsRouter from './routers/contacts.js';
+import { errorHandler } from './middlewares/errorHandler.js';
+import { notFoundHandler } from './middlewares/notFoundHandler.js';
 
 const PORT = Number(env('PORT', '3000'));
 
@@ -21,57 +23,11 @@ export const setupServer = () => {
     }),
   );
 
-  app.get('/contacts', async (req, res) => {
-    const contacts = await getAllContacts();
-    res.status(200).json({
-      status: 200,
-      message: 'Successfully found contacts',
-      data: contacts,
-    });
-  });
+  app.use(contactsRouter);
 
-  app.get('/contacts/:contactId', async (req, res) => {
-    const { contactId } = req.params;
+  app.use('*', notFoundHandler);
 
-    if (!mongoose.Types.ObjectId.isValid(contactId)) {
-      return res.status(404).json({
-        status: 404,
-        message: 'Not valid contact id',
-      });
-    }
-
-    try {
-      const contact = await getContactById(contactId);
-
-      if (!contact) {
-        return res.status(404).json({
-          status: 404,
-          message: `Contact with id ${contactId} not found`,
-        });
-      }
-      res.status(200).json({
-        status: 200,
-        message: `Successfully found contact with id ${contactId}!`,
-        data: contact,
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  app.use((err, req, res, next) => {
-    res.status(500).json({
-      message: 'Something went wrong!',
-      error: err.message,
-    });
-  });
-
-  app.use('*', (req, res) => {
-    return res.status(404).json({
-      status: 404,
-      message: 'Not found',
-    });
-  });
+  app.use(errorHandler);
 
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
