@@ -68,27 +68,50 @@ export const createContactController = async (req, res, next) => {
 
 export const patchContactController = async (req, res, next) => {
   const { contactId } = req.params;
-  const result = await patchContact(contactId, req.body);
-  if (!result) {
-    next(createHttpError(404, 'Contact not found'));
-    return;
+  
+  if (!mongoose.Types.ObjectId.isValid(contactId)) {
+    return res.status(400).json({
+      status: 400,
+      message: 'Not valid contact id',
+    });
   }
-  res.json({
-    status: 200,
-    message: `Successfully patched a contact!`,
-    data: result.student,
-  });
+
+  try {
+    const result = await patchContact(contactId, req.body);
+    if (!result) {
+      next(createHttpError(404, 'Contact not found'));
+      return;
+    }
+    res.json({
+      status: 200,
+      message: `Successfully patched a contact!`,
+      data: result.student,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const deleteContactController = async (req, res, next) => {
   const { contactId } = req.params;
-  const contact = await deleteContact(contactId);
 
-  if (!contact) {
-    next(createHttpError(404, 'Contact not found'));
-    return;
+  if (!mongoose.Types.ObjectId.isValid(contactId)) {
+    return res.status(400).json({
+      status: 400,
+      message: 'Not valid contact id',
+    });
   }
-  res.status(204).send({
-    status: 204,
-  });
+
+  try {
+    const contact = await deleteContact(contactId);
+    if (!contact) {
+      next(createHttpError(404, 'Contact not found'));
+      return;
+    }
+    res.status(204).send({
+      status: 204,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
