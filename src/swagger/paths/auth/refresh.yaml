@@ -1,0 +1,41 @@
+tags:
+  - Auth
+summary: Refresh a user session
+operationId: refreshUserSession
+description: 'Refresh user session'
+security: []
+parameters:
+  - in: cookie
+    name: refreshToken
+    required: true
+    schema:
+      type: string
+      description: refresh token
+responses:
+  '200':
+    description: Successfully refreshed a session!
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - status
+            - message
+            - data
+          properties:
+            status:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: Successfully refreshed a session!
+            data:
+              type: object
+              properties:
+                accessToken:
+                  type: string
+                  example: CaAgGZHREfYYXVmbrhiTMBzv6UCOEmG4Uykkqnn+
+  '401':
+    description: 'Unauthorized'
+  '404':
+    description: 'User not found'
